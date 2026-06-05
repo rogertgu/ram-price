@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAM Price/GB Dashboard — DDR3 / DDR4 / DDR5 (May 2024 – May 2026)</title>
+<meta name="description" content="Evolución del precio retail por GB de memoria RAM DDR3, DDR4 y DDR5 entre mayo 2024 y mayo 2026. Visualiza el shock de escasez de DRAM de 2025.">
+<meta name="color-scheme" content="dark light">
+<!-- Open Graph / compartir -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="RAM Price/GB Dashboard — DDR3 / DDR4 / DDR5">
+<meta property="og:description" content="Evolución del precio retail por GB de RAM (mayo 2024 → mayo 2026) y el shock de escasez de DRAM de 2025.">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📈</text></svg>">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root, [data-theme="dark"] {
+    --bg: #0f1419;
+    --panel: #1a2028;
+    --panel-2: #232b35;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #58a6ff;
+    --ddr3: #f59e0b;
+    --ddr4: #10b981;
+    --ddr5: #ef4444;
+    --border: #30363d;
+    --note-bg: #2d2418;
+    --note-text: #d4b876;
+    --shade: rgba(239,68,68,0.07);
+  }
+  [data-theme="light"] {
+    --bg: #f6f8fa;
+    --panel: #ffffff;
+    --panel-2: #eef1f4;
+    --text: #1f2328;
+    --muted: #59636e;
+    --accent: #0969da;
+    --ddr3: #bf6900;
+    --ddr4: #0a7d4d;
+    --ddr5: #cf222e;
+    --border: #d0d7de;
+    --note-bg: #fff8e6;
+    --note-text: #8a6d1b;
+    --shade: rgba(207,34,46,0.06);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    transition: background .2s, color .2s;
+  }
+  header {
+    padding: 24px 32px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .header-text { min-width: 0; }
+  h1 { margin: 0 0 6px; font-size: 22px; }
+  .subtitle { color: var(--muted); font-size: 13px; }
+  .updated { color: var(--muted); font-size: 12px; margin-top: 6px; }
+  .toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  button.btn {
+    background: var(--panel-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 7px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+  }
+  button.btn:hover { border-color: var(--accent); }
+  button.btn[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+  main { padding: 24px 32px; max-width: 1400px; margin: 0 auto; }
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .kpi {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 18px;
+  }
+  .kpi .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .kpi .value { font-size: 24px; font-weight: 600; margin: 6px 0 2px; }
+  .kpi .delta { font-size: 12px; }
+  .delta.up { color: #ff6b6b; }
+  .delta.down { color: #51cf66; }
+  .chart-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .chart-card .card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+  .chart-card h2 { margin: 0 0 4px; font-size: 16px; }
+  .chart-card .desc { color: var(--muted); font-size: 12px; margin-bottom: 14px; }
+  .chart-wrap { position: relative; height: 380px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+  @media (max-width: 600px) {
+    header, main { padding-left: 16px; padding-right: 16px; }
+    .chart-wrap { height: 300px; }
+  }
+  .grid-2 .chart-wrap { height: 300px; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  th, td {
+    padding: 8px 12px;
+    text-align: right;
+    border-bottom: 1px solid var(--border);
+  }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--muted); font-weight: 500; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; position: sticky; top: 0; background: var(--panel); }
+  tbody tr:hover { background: var(--panel-2); }
+  .legend-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+  .sources {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 22px;
+    font-size: 13px;
+  }
+  .sources h3 { margin: 0 0 10px; font-size: 14px; }
+  .sources ul { margin: 0; padding-left: 18px; color: var(--muted); }
+  .sources a { color: var(--accent); text-decoration: none; }
+  .sources a:hover { text-decoration: underline; }
+  .note {
+    background: var(--note-bg);
+    border-left: 3px solid var(--ddr3);
+    padding: 12px 16px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: var(--note-text);
+    margin-bottom: 20px;
+  }
+  footer { text-align: center; color: var(--muted); font-size: 12px; padding: 8px 32px 32px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="header-text">
+    <h1>RAM Retail Price per GB — Evolución 24 meses</h1>
+    <div class="subtitle">DDR3 · DDR4 · DDR5 · Mercado retail USD/GB · Mayo 2024 → Mayo 2026</div>
+    <div class="updated" id="updated"></div>
+  </div>
+  <div class="toolbar">
+    <button class="btn" id="scaleToggle" aria-pressed="false" title="Cambiar entre escala lineal y logarítmica">Escala: Lineal</button>
+    <button class="btn" id="themeToggle" title="Cambiar tema claro/oscuro">🌙 Oscuro</button>
+  </div>
+</header>
+<main>
+
+  <div class="note">
+    <strong>Nota metodológica:</strong> Los datos provienen de fuentes públicas (Tom's Hardware RAM Price Index, TrendForce DRAM Spot, PCPartPicker Trends, Pangoly price history, Wccftech, XDA Developers). Los puntos mensuales se interpolan entre data points documentados — útil para visualizar tendencia, no para decisiones de compra exactas. Ver fuentes al final.
+  </div>
+
+  <div class="kpi-grid" id="kpiGrid"></div>
+
+  <div class="chart-card">
+    <div class="card-head">
+      <div>
+        <h2>Evolución USD/GB — comparativo DDR3 / DDR4 / DDR5</h2>
+        <div class="desc">Precio retail promedio por gigabyte. La banda roja marca el shock de escasez de DRAM (2H 2025). Usa el botón «Escala» para alternar logarítmica.</div>
+      </div>
+    </div>
+    <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="chart-card">
+      <h2>Variación % desde Mayo 2024</h2>
+      <div class="desc">Base 100 = mayo 2024. Refleja la magnitud del shock 2H 2025.</div>
+      <div class="chart-wrap"><canvas id="indexChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h2>Spread DDR5 vs DDR4</h2>
+      <div class="desc">Diferencia USD/GB. Valores positivos = DDR5 más caro que DDR4.</div>
+      <div class="chart-wrap"><canvas id="spreadChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <div class="card-head">
+      <div>
+        <h2>Tabla de datos mensuales</h2>
+        <div class="desc">USD/GB · valores redondeados a centavo</div>
+      </div>
+      <button class="btn" id="csvBtn" title="Descargar los datos en CSV">⬇ Descargar CSV</button>
+    </div>
+    <div style="overflow-x:auto; max-height: 420px;"><table id="dataTable"></table></div>
+  </div>
+
+  <div class="sources">
+    <h3>Fuentes consultadas</h3>
+    <ul>
+      <li><a href="https://www.tomshardware.com/pc-components/ram/ram-price-index-2026-lowest-price-on-ddr5-and-ddr4-memory-of-all-capacities" target="_blank" rel="noopener">Tom's Hardware — RAM Price Index 2026 (DDR4 / DDR5)</a></li>
+      <li><a href="https://www.tomshardware.com/tech-industry/ddr4-spot-prices-fall-for-first-time-in-nearly-a-year-as-chinese-channel-inventory-clears" target="_blank" rel="noopener">Tom's Hardware — DDR4 spot price update (Apr 2026)</a></li>
+      <li><a href="https://www.tomshardware.com/pc-components/ram/ddr4-costs-soar-as-manufacturers-pull-the-plug" target="_blank" rel="noopener">Tom's Hardware — DDR4 EOL panic buying</a></li>
+      <li><a href="https://www.trendforce.com/price/dram/dram_spot" target="_blank" rel="noopener">TrendForce — DRAM Spot Price</a></li>
+      <li><a href="https://pcpartpicker.com/trends/price/memory/" target="_blank" rel="noopener">PCPartPicker — Memory Price Trends</a></li>
+      <li><a href="https://pangoly.com/en/price-trends/ram/32gb-ddr5" target="_blank" rel="noopener">Pangoly — 32GB DDR5 price history</a></li>
+      <li><a href="https://pangoly.com/en/price-history/crucial-32gb-ddr5-5200mhz" target="_blank" rel="noopener">Pangoly — Crucial 32GB DDR5 5200MHz history</a></li>
+      <li><a href="https://www.xda-developers.com/ddr5-ram-prices-tripled-in-six-months-and-nobody-is-talking-about-when-theyll-come-back-down/" target="_blank" rel="noopener">XDA Developers — DDR5 prices tripled in 6 months</a></li>
+      <li><a href="https://wccftech.com/memory-ddr5-ddr4-shortages-last-till-q4-2027-higher-prices-throughout-2026/" target="_blank" rel="noopener">Wccftech — Memory shortages outlook to Q4 2027</a></li>
+      <li><a href="https://wccftech.com/ddr5-memory-twice-as-expensive-16-32-gb-prices-hit-all-time-high/" target="_blank" rel="noopener">Wccftech — DDR5 all-time high pricing</a></li>
+      <li><a href="https://www.club386.com/ddr4-ram-prices-quadruple/" target="_blank" rel="noopener">Club386 — DDR4 spot cost +172%</a></li>
+      <li><a href="https://www.bacloud.com/en/blog/230/when-will-ram-prices-drop-global-memory-market-outlook-20242026.html" target="_blank" rel="noopener">BACloud — Global Memory Market Outlook 2024–2026</a></li>
+      <li><a href="https://en.wikipedia.org/wiki/2024%E2%80%93present_global_memory_supply_shortage" target="_blank" rel="noopener">Wikipedia — 2024–present global memory supply shortage</a></li>
+    </ul>
+  </div>
+
+</main>
+<footer>Dashboard educativo · datos interpolados de fuentes públicas · no constituye consejo de compra</footer>
+
+<script>
+const labels = [
+  "May'24","Jun'24","Jul'24","Aug'24","Sep'24","Oct'24","Nov'24","Dec'24",
+  "Jan'25","Feb'25","Mar'25","Apr'25","May'25","Jun'25","Jul'25","Aug'25",
+  "Sep'25","Oct'25","Nov'25","Dec'25",
+  "Jan'26","Feb'26","Mar'26","Apr'26","May'26"
+];
+
+// USD/GB - estimados mensuales basados en data points documentados
+const ddr3 = [2.20,2.20,2.25,2.25,2.30,2.35,2.40,2.40,2.45,2.50,2.55,2.65,2.80,2.90,3.00,3.20,3.50,3.80,4.20,4.50,4.70,5.00,5.50,5.80,6.00];
+const ddr4 = [2.00,2.00,1.95,1.90,2.00,2.30,2.60,2.80,2.70,2.65,2.60,2.80,3.10,3.20,3.30,3.80,4.50,5.80,7.00,7.50,5.30,6.50,9.00,10.50,10.00];
+const ddr5 = [3.50,3.20,2.80,2.40,2.50,2.70,2.85,3.00,3.10,3.20,3.00,2.95,2.90,2.85,3.00,3.50,4.20,5.80,9.00,12.50,13.50,14.80,13.00,12.00,11.00];
+
+// Ventana del "shock" de escasez (índices en labels) — Sep'25 (16) a Feb'26 (21)
+const SHOCK_START = 16, SHOCK_END = 21;
+
+const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+let colors = readColors();
+function readColors() {
+  return {
+    ddr3: cssVar('--ddr3'), ddr4: cssVar('--ddr4'), ddr5: cssVar('--ddr5'),
+    muted: cssVar('--muted'), border: cssVar('--border'), text: cssVar('--text'),
+    shade: cssVar('--shade')
+  };
+}
+
+// Plugin: banda sombreada para el periodo de shock
+const shockBand = {
+  id: 'shockBand',
+  beforeDatasetsDraw(chart) {
+    const { ctx, chartArea, scales: { x } } = chart;
+    if (!x) return;
+    const x1 = x.getPixelForValue(SHOCK_START);
+    const x2 = x.getPixelForValue(SHOCK_END);
+    ctx.save();
+    ctx.fillStyle = colors.shade;
+    ctx.fillRect(x1, chartArea.top, x2 - x1, chartArea.bottom - chartArea.top);
+    ctx.restore();
+  }
+};
+Chart.register(shockBand);
+
+Chart.defaults.color = colors.muted;
+Chart.defaults.borderColor = colors.border;
+Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif';
+
+// Última actualización = último mes de datos
+document.getElementById('updated').textContent =
+  'Última actualización del dataset: ' + labels[labels.length - 1].replace("'", " '20");
+
+// ---------- KPIs ----------
+const kpiGrid = document.getElementById('kpiGrid');
+function kpiCard(label, latest, base, color) {
+  const change = ((latest - base) / base * 100);
+  const cls = change >= 0 ? 'up' : 'down';
+  const arrow = change >= 0 ? '▲' : '▼';
+  return `<div class="kpi">
+    <div class="label"><span class="legend-dot" style="background:${color}"></span>${label}</div>
+    <div class="value">$${latest.toFixed(2)}/GB</div>
+    <div class="delta ${cls}">${arrow} ${change.toFixed(0)}% vs May 2024 ($${base.toFixed(2)})</div>
+  </div>`;
+}
+const peak5 = Math.max(...ddr5), peakIdx = ddr5.indexOf(peak5);
+kpiGrid.innerHTML =
+  kpiCard('DDR3 actual', ddr3.at(-1), ddr3[0], colors.ddr3) +
+  kpiCard('DDR4 actual', ddr4.at(-1), ddr4[0], colors.ddr4) +
+  kpiCard('DDR5 actual', ddr5.at(-1), ddr5[0], colors.ddr5) +
+  `<div class="kpi">
+    <div class="label"><span class="legend-dot" style="background:${colors.ddr5}"></span>Pico DDR5</div>
+    <div class="value">$${peak5.toFixed(2)}/GB</div>
+    <div class="delta up">▲ máximo en ${labels[peakIdx]}</div>
+  </div>` +
+  `<div class="kpi">
+    <div class="label">Periodo</div>
+    <div class="value">24 meses</div>
+    <div class="delta" style="color:var(--muted)">May 2024 – May 2026</div>
+  </div>`;
+
+// ---------- Main chart ----------
+function yScale(type) {
+  return {
+    type,
+    title: { display: true, text: 'USD / GB' + (type === 'logarithmic' ? ' (log)' : ''), color: colors.muted },
+    grid: { color: colors.border },
+    ticks: { callback: v => '$' + Number(v).toFixed(2) }
+  };
+}
+
+const mainChart = new Chart(document.getElementById('mainChart'), {
+  type: 'line',
+  data: {
+    labels,
+    datasets: [
+      { label: 'DDR3', data: ddr3, borderColor: colors.ddr3, backgroundColor: colors.ddr3 + '22', tension: 0.3, pointRadius: 2, pointHoverRadius: 5, borderWidth: 2, fill: false },
+      { label: 'DDR4', data: ddr4, borderColor: colors.ddr4, backgroundColor: colors.ddr4 + '22', tension: 0.3, pointRadius: 2, pointHoverRadius: 5, borderWidth: 2, fill: false },
+      { label: 'DDR5', data: ddr5, borderColor: colors.ddr5, backgroundColor: colors.ddr5 + '22', tension: 0.3, pointRadius: 2, pointHoverRadius: 5, borderWidth: 2, fill: false },
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { position: 'top', labels: { color: colors.text } },
+      tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: $${ctx.parsed.y.toFixed(2)}/GB` } }
+    },
+    scales: { y: yScale('linear'), x: { grid: { color: colors.border } } }
+  }
+});
+
+// ---------- Index chart (base 100) ----------
+const idx = arr => arr.map(v => (v / arr[0]) * 100);
+const indexChart = new Chart(document.getElementById('indexChart'), {
+  type: 'line',
+  data: {
+    labels,
+    datasets: [
+      { label: 'DDR3', data: idx(ddr3), borderColor: colors.ddr3, tension: 0.3, pointRadius: 0, borderWidth: 2 },
+      { label: 'DDR4', data: idx(ddr4), borderColor: colors.ddr4, tension: 0.3, pointRadius: 0, borderWidth: 2 },
+      { label: 'DDR5', data: idx(ddr5), borderColor: colors.ddr5, tension: 0.3, pointRadius: 0, borderWidth: 2 },
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { labels: { color: colors.text } },
+      tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(0)} (índice)` } }
+    },
+    scales: {
+      y: { title: { display: true, text: 'Índice (May 2024 = 100)', color: colors.muted }, grid: { color: colors.border } },
+      x: { grid: { color: colors.border } }
+    }
+  }
+});
+
+// ---------- Spread chart ----------
+const spread = ddr5.map((v, i) => v - ddr4[i]);
+const spreadChart = new Chart(document.getElementById('spreadChart'), {
+  type: 'bar',
+  data: {
+    labels,
+    datasets: [{
+      label: 'DDR5 − DDR4 (USD/GB)',
+      data: spread,
+      backgroundColor: spread.map(v => v >= 0 ? colors.ddr5 + '88' : colors.ddr4 + '88'),
+      borderColor: spread.map(v => v >= 0 ? colors.ddr5 : colors.ddr4),
+      borderWidth: 1
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: ctx => `${ctx.parsed.y >= 0 ? '+' : ''}$${ctx.parsed.y.toFixed(2)}/GB` } }
+    },
+    scales: {
+      y: { title: { display: true, text: 'USD/GB', color: colors.muted }, grid: { color: colors.border }, ticks: { callback: v => '$' + v.toFixed(2) } },
+      x: { grid: { color: colors.border } }
+    }
+  }
+});
+
+const allCharts = [mainChart, indexChart, spreadChart];
+
+// ---------- Data table ----------
+const table = document.getElementById('dataTable');
+let html = '<thead><tr><th>Mes</th><th>DDR3</th><th>DDR4</th><th>DDR5</th></tr></thead><tbody>';
+for (let i = 0; i < labels.length; i++) {
+  html += `<tr><td>${labels[i]}</td><td>$${ddr3[i].toFixed(2)}</td><td>$${ddr4[i].toFixed(2)}</td><td>$${ddr5[i].toFixed(2)}</td></tr>`;
+}
+html += '</tbody>';
+table.innerHTML = html;
+
+// ---------- CSV download ----------
+document.getElementById('csvBtn').addEventListener('click', () => {
+  let csv = 'Mes,DDR3_USD_GB,DDR4_USD_GB,DDR5_USD_GB\n';
+  for (let i = 0; i < labels.length; i++) {
+    csv += `${labels[i]},${ddr3[i]},${ddr4[i]},${ddr5[i]}\n`;
+  }
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'ram-price-per-gb.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+// ---------- Scale toggle (lineal / log) ----------
+let logScale = false;
+const scaleToggle = document.getElementById('scaleToggle');
+scaleToggle.addEventListener('click', () => {
+  logScale = !logScale;
+  mainChart.options.scales.y = yScale(logScale ? 'logarithmic' : 'linear');
+  mainChart.update();
+  scaleToggle.setAttribute('aria-pressed', String(logScale));
+  scaleToggle.textContent = 'Escala: ' + (logScale ? 'Log' : 'Lineal');
+});
+
+// ---------- Theme toggle ----------
+const themeToggle = document.getElementById('themeToggle');
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('ram-theme', theme);
+  themeToggle.textContent = theme === 'dark' ? '🌙 Oscuro' : '☀️ Claro';
+  // refrescar colores en los charts
+  colors = readColors();
+  Chart.defaults.color = colors.muted;
+  Chart.defaults.borderColor = colors.border;
+  restyleCharts();
+}
+function restyleCharts() {
+  const map = [colors.ddr3, colors.ddr4, colors.ddr5];
+  [mainChart, indexChart].forEach(c => {
+    c.data.datasets.forEach((ds, i) => { ds.borderColor = map[i]; });
+    c.options.plugins.legend.labels.color = colors.text;
+    c.options.scales.x.grid.color = colors.border;
+    c.options.scales.y.grid.color = colors.border;
+    if (c.options.scales.y.title) c.options.scales.y.title.color = colors.muted;
+  });
+  spreadChart.data.datasets[0].backgroundColor = spread.map(v => v >= 0 ? colors.ddr5 + '88' : colors.ddr4 + '88');
+  spreadChart.data.datasets[0].borderColor = spread.map(v => v >= 0 ? colors.ddr5 : colors.ddr4);
+  spreadChart.options.scales.x.grid.color = colors.border;
+  spreadChart.options.scales.y.grid.color = colors.border;
+  allCharts.forEach(c => c.update());
+}
+themeToggle.addEventListener('click', () => {
+  const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  applyTheme(next);
+});
+// tema inicial guardado
+const saved = localStorage.getItem('ram-theme');
+if (saved && saved !== 'dark') applyTheme(saved);
+else themeToggle.textContent = '🌙 Oscuro';
+</script>
+</body>
+</html>
