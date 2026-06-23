@@ -1,6 +1,6 @@
 # RAM Price/GB Dashboard
 
-Dashboard web (una sola página, sin build) que muestra la evolución del **precio retail por GB** de memoria RAM **DDR3 / DDR4 / DDR5** entre **mayo 2024 y mayo 2026**, con foco en el shock de escasez de DRAM de la segunda mitad de 2025.
+Dashboard web (una sola página, sin build) que muestra la evolución del **precio retail por GB** de memoria RAM **DDR3 / DDR4 / DDR5** entre **mayo 2024 y junio 2026**, con foco en el shock de escasez de DRAM de la segunda mitad de 2025.
 
 ## Características
 
