@@ -138,9 +138,21 @@
     font-size: 13px;
   }
   .sources h3 { margin: 0 0 10px; font-size: 14px; }
+  .sources h4 { margin: 18px 0 8px; font-size: 13px; color: var(--text); }
   .sources ul { margin: 0; padding-left: 18px; color: var(--muted); }
+  .sources ol { margin: 6px 0 0; padding-left: 20px; color: var(--muted); }
+  .sources ol li { margin-bottom: 5px; }
   .sources a { color: var(--accent); text-decoration: none; }
   .sources a:hover { text-decoration: underline; }
+  .sources code { background: var(--panel-2); padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+  .src-table th, .src-table td { text-align: left; vertical-align: top; }
+  .src-table th:first-child, .src-table td:first-child { text-align: left; }
+  .src-table .nowrap { white-space: nowrap; }
+  .update-box { background: var(--panel-2); border: 1px solid var(--border); border-radius: 6px; padding: 12px 16px; margin-bottom: 6px; }
+  .tag { display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 10px; margin: 0 4px 2px 0; color: #fff; }
+  .tag.t3 { background: var(--ddr3); }
+  .tag.t4 { background: var(--ddr4); }
+  .tag.t5 { background: var(--ddr5); }
   .note {
     background: var(--note-bg);
     border-left: 3px solid var(--ddr3);
@@ -208,15 +220,58 @@
   </div>
 
   <div class="sources">
-    <h3>Fuentes consultadas</h3>
+    <h3>Fuentes y guía de actualización</h3>
+
+    <div class="update-box">
+      <strong>Cómo actualizar el gráfico (paso a paso):</strong>
+      <ol>
+        <li>Consulta las <strong>fuentes primarias</strong> de la tabla y anota el <code>USD/GB</code> del mes para DDR3, DDR4 y DDR5. Si una fuente da el precio de un módulo, divide entre su capacidad — p. ej. un kit de <code>32 GB</code> DDR5 a <code>$120</code> → <code>$3.75/GB</code>.</li>
+        <li>En <code>index.html</code>, añade la etiqueta del mes nuevo al array <code>labels</code> (formato <code>"Jun'26"</code>).</li>
+        <li>Añade el valor del mes <strong>al final</strong> de cada array <code>ddr3</code>, <code>ddr4</code> y <code>ddr5</code> (los 4 arrays deben tener la misma longitud).</li>
+        <li>Opcional: ajusta la banda del shock con <code>SHOCK_START</code> / <code>SHOCK_END</code>.</li>
+        <li><code>git commit</code> + <code>git push</code> a la rama → la web se republica sola en ~1 min.</li>
+      </ol>
+    </div>
+
+    <h4>Fuentes primarias <span style="color:var(--muted);font-weight:400">(de aquí salen los números USD/GB)</span></h4>
+    <div style="overflow-x:auto">
+      <table class="src-table">
+        <thead>
+          <tr><th>Fuente</th><th>Series</th><th>Tipo de dato</th><th class="nowrap">Cada cuánto</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a href="https://www.tomshardware.com/pc-components/ram/ram-price-index-2026-lowest-price-on-ddr5-and-ddr4-memory-of-all-capacities" target="_blank" rel="noopener">Tom's Hardware — RAM Price Index</a></td>
+            <td class="nowrap"><span class="tag t4">DDR4</span><span class="tag t5">DDR5</span></td>
+            <td>Retail USD/GB por capacidad (referencia principal)</td>
+            <td class="nowrap">Mensual aprox.</td>
+          </tr>
+          <tr>
+            <td><a href="https://www.trendforce.com/price/dram/dram_spot" target="_blank" rel="noopener">TrendForce — DRAM Spot Price</a></td>
+            <td class="nowrap"><span class="tag t4">DDR4</span><span class="tag t5">DDR5</span></td>
+            <td>Precio spot mayorista (anticipa el retail)</td>
+            <td class="nowrap">Diario / semanal</td>
+          </tr>
+          <tr>
+            <td><a href="https://pcpartpicker.com/trends/price/memory/" target="_blank" rel="noopener">PCPartPicker — Memory Trends</a></td>
+            <td class="nowrap"><span class="tag t3">DDR3</span><span class="tag t4">DDR4</span><span class="tag t5">DDR5</span></td>
+            <td>Retail real (EE. UU.); útil para DDR3 y verificar tendencia</td>
+            <td class="nowrap">Continuo</td>
+          </tr>
+          <tr>
+            <td><a href="https://pangoly.com/en/price-trends/ram/32gb-ddr5" target="_blank" rel="noopener">Pangoly — 32GB DDR5</a> · <a href="https://pangoly.com/en/price-history/crucial-32gb-ddr5-5200mhz" target="_blank" rel="noopener">Crucial 32GB</a></td>
+            <td class="nowrap"><span class="tag t5">DDR5</span></td>
+            <td>Histórico de precio de módulos (÷ capacidad → USD/GB)</td>
+            <td class="nowrap">Continuo</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4>Contexto y noticias <span style="color:var(--muted);font-weight:400">(para entender los saltos, no para los números)</span></h4>
     <ul>
-      <li><a href="https://www.tomshardware.com/pc-components/ram/ram-price-index-2026-lowest-price-on-ddr5-and-ddr4-memory-of-all-capacities" target="_blank" rel="noopener">Tom's Hardware — RAM Price Index 2026 (DDR4 / DDR5)</a></li>
       <li><a href="https://www.tomshardware.com/tech-industry/ddr4-spot-prices-fall-for-first-time-in-nearly-a-year-as-chinese-channel-inventory-clears" target="_blank" rel="noopener">Tom's Hardware — DDR4 spot price update (Apr 2026)</a></li>
       <li><a href="https://www.tomshardware.com/pc-components/ram/ddr4-costs-soar-as-manufacturers-pull-the-plug" target="_blank" rel="noopener">Tom's Hardware — DDR4 EOL panic buying</a></li>
-      <li><a href="https://www.trendforce.com/price/dram/dram_spot" target="_blank" rel="noopener">TrendForce — DRAM Spot Price</a></li>
-      <li><a href="https://pcpartpicker.com/trends/price/memory/" target="_blank" rel="noopener">PCPartPicker — Memory Price Trends</a></li>
-      <li><a href="https://pangoly.com/en/price-trends/ram/32gb-ddr5" target="_blank" rel="noopener">Pangoly — 32GB DDR5 price history</a></li>
-      <li><a href="https://pangoly.com/en/price-history/crucial-32gb-ddr5-5200mhz" target="_blank" rel="noopener">Pangoly — Crucial 32GB DDR5 5200MHz history</a></li>
       <li><a href="https://www.xda-developers.com/ddr5-ram-prices-tripled-in-six-months-and-nobody-is-talking-about-when-theyll-come-back-down/" target="_blank" rel="noopener">XDA Developers — DDR5 prices tripled in 6 months</a></li>
       <li><a href="https://wccftech.com/memory-ddr5-ddr4-shortages-last-till-q4-2027-higher-prices-throughout-2026/" target="_blank" rel="noopener">Wccftech — Memory shortages outlook to Q4 2027</a></li>
       <li><a href="https://wccftech.com/ddr5-memory-twice-as-expensive-16-32-gb-prices-hit-all-time-high/" target="_blank" rel="noopener">Wccftech — DDR5 all-time high pricing</a></li>
@@ -236,6 +291,13 @@ const labels = [
   "Sep'25","Oct'25","Nov'25","Dec'25",
   "Jan'26","Feb'26","Mar'26","Apr'26","May'26"
 ];
+
+// === CÓMO ACTUALIZAR (resumen; guía completa en la sección "Fuentes y guía") ===
+// 1) Añade el mes nuevo a `labels` (p. ej. "Jun'26").
+// 2) Añade el USD/GB del mes al FINAL de ddr3, ddr4 y ddr5 (misma longitud que labels).
+// 3) Commit + push -> la web se republica sola.
+// Fuentes primarias: Tom's Hardware RAM Price Index, TrendForce DRAM Spot,
+// PCPartPicker Trends, Pangoly (DDR5). Para un módulo: USD/GB = precio / capacidad_GB.
 
 // USD/GB - estimados mensuales basados en data points documentados
 const ddr3 = [2.20,2.20,2.25,2.25,2.30,2.35,2.40,2.40,2.45,2.50,2.55,2.65,2.80,2.90,3.00,3.20,3.50,3.80,4.20,4.50,4.70,5.00,5.50,5.80,6.00];
