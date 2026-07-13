@@ -302,9 +302,11 @@ const labels = [
 // USD/GB - estimados mensuales basados en data points documentados
 // Jun'26: DDR4=$9.08/GB y DDR5=$14.14/GB son cifras de trackers de junio 2026;
 // DDR3 ($6.20) es estimación (sin número exacto de tracker, sigue al alza por contagio).
+// DDR5 Feb-May'26 realineado a meseta ~13.6-14 (los trackers indican que DDR5
+// NO bajó a 11 en primavera, sino que se mantuvo alto; May≈13.81 implícito por +2.4% MoM a jun).
 const ddr3 = [2.20,2.20,2.25,2.25,2.30,2.35,2.40,2.40,2.45,2.50,2.55,2.65,2.80,2.90,3.00,3.20,3.50,3.80,4.20,4.50,4.70,5.00,5.50,5.80,6.00,6.20];
 const ddr4 = [2.00,2.00,1.95,1.90,2.00,2.30,2.60,2.80,2.70,2.65,2.60,2.80,3.10,3.20,3.30,3.80,4.50,5.80,7.00,7.50,5.30,6.50,9.00,10.50,10.00,9.08];
-const ddr5 = [3.50,3.20,2.80,2.40,2.50,2.70,2.85,3.00,3.10,3.20,3.00,2.95,2.90,2.85,3.00,3.50,4.20,5.80,9.00,12.50,13.50,14.80,13.00,12.00,11.00,14.14];
+const ddr5 = [3.50,3.20,2.80,2.40,2.50,2.70,2.85,3.00,3.10,3.20,3.00,2.95,2.90,2.85,3.00,3.50,4.20,5.80,9.00,12.50,13.50,14.00,13.70,13.60,13.81,14.14];
 
 // Ventana del "shock" de escasez (índices en labels) — Sep'25 (16) a Feb'26 (21)
 const SHOCK_START = 16, SHOCK_END = 21;
